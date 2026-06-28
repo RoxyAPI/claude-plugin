@@ -1,0 +1,43 @@
+{
+	"name": "roxyapi",
+	"owner": {
+		"name": "RoxyAPI"
+	},
+	"description": "RoxyAPI: the multi domain spiritual intelligence API and Remote MCP. One plugin connects Claude Code to verified astrology, Vedic, tarot, numerology, human design, forecast, and more.",
+	"plugins": [
+		{
+			"name": "roxyapi",
+			"source": "./",
+			"description": "Connects Claude Code to RoxyAPI: a keyless Docs MCP for live endpoint lookup plus a skill that teaches Claude how to build on every RoxyAPI domain under one key.",
+			"category": "api",
+			"keywords": [
+				"roxyapi",
+				"mcp",
+				"remote-mcp",
+				"claude-code",
+				"agent-skill",
+				"astrology-api",
+				"spiritual",
+				"divination",
+				"natal-chart",
+				"kundli",
+				"horoscope",
+				"astrology",
+				"vedic-astrology",
+				"numerology",
+				"tarot",
+				"human-design",
+				"forecast",
+				"biorhythm",
+				"iching",
+				"crystals",
+				"dreams",
+				"angel-numbers",
+				"location"
+			],
+			"homepage": "https://roxyapi.com",
+			"repository": "https://github.com/RoxyAPI/claude-plugin",
+			"license": "MIT"
+		}
+	]
+}

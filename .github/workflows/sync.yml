@@ -1,0 +1,40 @@
+name: Sync plugin
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [openapi-updated]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - name: Regenerate plugin artifacts from the live spec
+        run: bun run sync
+
+      - name: Commit regenerated artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add skills .mcp.json .claude-plugin
+          if git diff --cached --quiet; then
+            echo "No artifact changes."
+          else
+            git commit -m "sync: regenerate plugin from live OpenAPI spec"
+            git push
+          fi

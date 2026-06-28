@@ -1,0 +1,62 @@
+# RoxyAPI for Claude Code
+
+[![CI](https://github.com/RoxyAPI/claude-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/RoxyAPI/claude-plugin/actions/workflows/ci.yml)
+[![MCP docs](https://img.shields.io/badge/MCP-roxyapi.com-blue)](https://roxyapi.com/docs/mcp)
+[![API Reference](https://img.shields.io/badge/api%20reference-roxyapi.com-blue)](https://roxyapi.com/api-reference)
+[![Docs](https://img.shields.io/badge/docs-roxyapi.com-blue)](https://roxyapi.com/docs)
+[![Pricing](https://img.shields.io/badge/pricing-roxyapi.com-blue)](https://roxyapi.com/pricing)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+
+A Claude Code plugin that teaches Claude how to build on RoxyAPI, the multi domain spiritual intelligence API: Western and Vedic astrology, tarot, numerology, horoscopes, human design, forecast, biorhythm, I Ching, crystals, dreams, angel numbers, and location. One key, every domain. Remote MCP, typed SDKs, and drop in UI components live alongside at [roxyapi.com](https://roxyapi.com).
+
+One install gives Claude Code two things, no API key required:
+
+- A **Skill** that tells Claude when and how to call RoxyAPI: the location first rule, `X-API-Key` auth, endpoints per domain, the error contract, and the SDK and Remote MCP integration paths.
+- The keyless **Docs MCP** (`search_docs`), auto connected, so Claude looks up the exact endpoint, field, or SDK method live from the reference instead of guessing.
+
+Both stay current automatically. The plugin is regenerated from the live OpenAPI spec and the published agent playbook, so as the API grows the Skill grows with it.
+
+## Install
+
+In Claude Code:
+
+```
+/plugin marketplace add RoxyAPI/claude-plugin
+/plugin install roxyapi@roxyapi
+```
+
+That is the whole setup. Claude now reaches for RoxyAPI when you build any astrology, tarot, numerology, human design, forecast, or other insight feature, and can query the Docs MCP for exact endpoints while it writes the integration.
+
+## Make live API calls
+
+The Docs MCP is keyless and answers questions about the API. To let Claude call the API for real (returning live charts, readings, or forecasts), add a per domain Remote MCP server with your key. Get a key at [roxyapi.com/account](https://roxyapi.com/account), then add to your MCP config:
+
+```json
+{
+  "mcpServers": {
+    "roxy-astrology": {
+      "type": "http",
+      "url": "https://roxyapi.com/mcp/astrology",
+      "headers": { "X-API-Key": "YOUR_KEY" }
+    }
+  }
+}
+```
+
+Swap `astrology` for any domain (`vedic-astrology`, `tarot`, `numerology`, `human-design`, `forecast`, and more). See the [MCP guide](https://roxyapi.com/docs/mcp).
+
+## What is RoxyAPI
+
+Hosted infrastructure for insight, prediction, and spiritual intelligence apps. One subscription, one API key, every domain. Calculations are powered by Roxy Ephemeris, verified against NASA JPL Horizons. Flat pricing, no AGPL, instant key delivery, typed SDKs for TypeScript, Python, PHP, C#, and Go, and Remote MCP across every domain. See the [methodology](https://roxyapi.com/methodology).
+
+## Links
+
+- MCP guide: [roxyapi.com/docs/mcp](https://roxyapi.com/docs/mcp)
+- API reference: [roxyapi.com/api-reference](https://roxyapi.com/api-reference)
+- SDKs: [roxyapi.com/docs/sdk](https://roxyapi.com/docs/sdk)
+- Templates and starters: [roxyapi.com/starters](https://roxyapi.com/starters)
+- Pricing: [roxyapi.com/pricing](https://roxyapi.com/pricing)
+
+## License
+
+MIT. See [LICENSE](./LICENSE).

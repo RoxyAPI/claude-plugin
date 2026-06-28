@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "RoxyAPI for Claude Code"
+abstract: "A Claude Code plugin and marketplace for RoxyAPI, the multi domain spiritual intelligence API. Ships a skill plus the keyless Docs MCP, auto generated and kept in sync from the live OpenAPI spec."
+authors:
+  - name: "RoxyAPI"
+url: "https://github.com/RoxyAPI/claude-plugin"
+repository-code: "https://github.com/RoxyAPI/claude-plugin"
+license: MIT
+type: software
+keywords:
+  - claude-code
+  - mcp
+  - remote-mcp
+  - agent-skill
+  - openapi
+  - astrology-api
+  - vedic-astrology-api
+  - tarot-api
+  - numerology-api

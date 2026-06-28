@@ -1,0 +1,8 @@
+{
+	"mcpServers": {
+		"roxy-docs": {
+			"type": "http",
+			"url": "https://roxyapi.com/mcp/docs"
+		}
+	}
+}

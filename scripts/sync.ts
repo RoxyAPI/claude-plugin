@@ -2,9 +2,9 @@
  * Regenerates the plugin artifacts from the public RoxyAPI OpenAPI spec and agent playbook.
  *
  * @remarks
- * Sources: the combined spec at /api/v2/openapi.json and the playbook at /AGENTS.md. Outputs four files: the bundled Skill (skills/roxyapi/SKILL.md), the keyless Docs MCP config (.mcp.json), and the plugin and marketplace manifests (.claude-plugin/). Domains are discovered from the spec, so adding or changing endpoints needs no edit here.
+ * Sources, both fetched fresh each run, nothing vendored: the combined spec at /api/v2/openapi.json (the same single spec the SDKs generate from) for the domain keyword list, and the playbook at /AGENTS.md for the Skill body. Outputs four files: skills/roxyapi/SKILL.md, .mcp.json, and .claude-plugin/{plugin,marketplace}.json. New domains appear in the keywords automatically.
  *
- * Run `bun run sync` to write the artifacts, or `bun run sync --dry-run` to build and validate without writing (CI and the pre-push hook use this).
+ * Run `bun run sync` to write the artifacts, or `bun run sync --dry-run` to build and validate without writing (CI and the pre-push hook use this). The sync workflow commits the result only when it differs.
  */
 
 import { join } from 'node:path';
@@ -35,19 +35,16 @@ const FIXED_KEYWORDS = [
 	'horoscope',
 ];
 
+/** App-utility path segments (not insight domains). Excluded from discovery keywords so an astrology plugin is not tagged "usage" or "languages". The only thing here that is not a product domain. */
+const UTILITY_SEGMENTS = new Set(['usage', 'languages']);
+
 const DRY_RUN = new Set(process.argv.slice(2)).has('--dry-run');
 
 /** Bypass edge cache so generation always reflects the freshest origin, not a stale CDN node. */
 const NO_CACHE: RequestInit = { headers: { 'Cache-Control': 'no-cache' } };
 
 interface OpenAPISpec {
-	info: { title: string };
 	paths: Record<string, unknown>;
-}
-
-interface Domain {
-	slug: string;
-	title: string;
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -66,30 +63,19 @@ function writeJson(path: string, data: unknown): Promise<number> {
 	return Bun.write(path, `${JSON.stringify(data, null, '\t')}\n`);
 }
 
-/** Discover the live domains: combined-spec path segments that serve their own per-domain spec, kept in the spec's order rather than sorted. */
-async function discoverDomains(): Promise<Domain[]> {
+/** Domain slugs from the combined spec: distinct first path segments, in spec order, minus the app-utility routes. One spec, no per-domain fetch (the SDKs generate from this same combined spec). */
+async function discoverDomainSlugs(): Promise<string[]> {
 	const combined = await fetchJson<OpenAPISpec>(COMBINED_SPEC_URL);
 	const slugs: string[] = [];
 	const seen = new Set<string>();
 	for (const path of Object.keys(combined.paths)) {
 		const segment = path.split('/')[1];
-		if (segment && !seen.has(segment)) {
+		if (segment && !seen.has(segment) && !UTILITY_SEGMENTS.has(segment)) {
 			seen.add(segment);
 			slugs.push(segment);
 		}
 	}
-	const probed = await Promise.all(
-		slugs.map(async (slug) => {
-			const res = await fetch(
-				`${API_ORIGIN}/api/v2/${slug}/openapi.json`,
-				NO_CACHE,
-			);
-			if (!res.ok) return null;
-			const spec = (await res.json()) as OpenAPISpec;
-			return { slug, title: spec.info.title.replace(/ API$/, '') };
-		}),
-	);
-	return probed.filter((d): d is Domain => d !== null);
+	return slugs;
 }
 
 /** The Docs MCP is POST-only Streamable HTTP, so a GET returns 405 when it exists and 404 when it is gone. Fail the run on 404 so a removed endpoint never ships a dead config. */
@@ -99,10 +85,9 @@ async function assertDocsMcp(): Promise<void> {
 		throw new Error(`Docs MCP missing: GET ${DOCS_MCP_URL} -> 404`);
 }
 
-/** Compose the bundled Skill: model-invocation frontmatter over the live agent playbook. The trigger sentence lists discovered domains so it tracks the catalog; the body is /AGENTS.md verbatim (already generated from the spec). */
-function buildSkill(domains: Domain[], playbook: string): string {
-	const list = domains.map((d) => d.title).join(', ');
-	const description = `Use RoxyAPI to build or integrate any astrology, divination, or insight feature. RoxyAPI is a multi domain API with Remote MCP covering ${list}. Invoke when the user is building or asking about natal charts, horoscopes, Vedic kundli, panchang, synastry or compatibility, tarot readings, numerology reports, human design charts, transits or forecasts, biorhythm, I Ching, crystals, dream meanings, angel numbers, or city and timezone lookup, or any prediction, divination, or self knowledge app, agent, chatbot, or MCP integration. Covers endpoints, X-API-Key auth, the location first rule, typed SDKs, and Remote MCP.`;
+/** Skill: a stable model-invocation trigger over the live agent playbook (/AGENTS.md verbatim). The trigger lists concrete user intents, which fire model invocation more reliably than a domain-title list, and the playbook body already enumerates every domain. */
+function buildSkill(playbook: string): string {
+	const description = `Use RoxyAPI to build or integrate any astrology, divination, or insight feature. RoxyAPI is a multi domain API with Remote MCP under one key. Invoke when the user is building or asking about natal charts, horoscopes, Vedic kundli, panchang, synastry or compatibility, tarot readings, numerology reports, human design charts, transits or forecasts, biorhythm, I Ching, crystals, dream meanings, angel numbers, or city and timezone lookup, or any prediction, divination, or self knowledge app, agent, chatbot, or MCP integration. Covers endpoints, X-API-Key auth, the location first rule, typed SDKs, and Remote MCP.`;
 	return `---\nname: roxyapi\ndescription: ${description}\n---\n\n${playbook.trimStart()}`;
 }
 
@@ -117,11 +102,11 @@ function buildMcpConfig() {
 	};
 }
 
-function keywords(domains: Domain[]): string[] {
-	return [...new Set([...FIXED_KEYWORDS, ...domains.map((d) => d.slug)])];
+function keywords(slugs: string[]): string[] {
+	return [...new Set([...FIXED_KEYWORDS, ...slugs])];
 }
 
-function buildPlugin(domains: Domain[]) {
+function buildPlugin(slugs: string[]) {
 	return {
 		name: 'roxyapi',
 		description:
@@ -130,11 +115,11 @@ function buildPlugin(domains: Domain[]) {
 		homepage: 'https://roxyapi.com',
 		repository: 'https://github.com/RoxyAPI/claude-plugin',
 		license: 'MIT',
-		keywords: keywords(domains),
+		keywords: keywords(slugs),
 	};
 }
 
-function buildMarketplace(domains: Domain[]) {
+function buildMarketplace(slugs: string[]) {
 	return {
 		name: 'roxyapi',
 		owner: { name: 'RoxyAPI' },
@@ -147,7 +132,7 @@ function buildMarketplace(domains: Domain[]) {
 				description:
 					'Connects Claude Code to RoxyAPI: a keyless Docs MCP for live endpoint lookup plus a skill that teaches Claude how to build on every RoxyAPI domain under one key.',
 				category: 'api',
-				keywords: keywords(domains),
+				keywords: keywords(slugs),
 				homepage: 'https://roxyapi.com',
 				repository: 'https://github.com/RoxyAPI/claude-plugin',
 				license: 'MIT',
@@ -159,28 +144,26 @@ function buildMarketplace(domains: Domain[]) {
 async function main(): Promise<void> {
 	console.log(DRY_RUN ? 'sync: DRY RUN (no writes)\n' : 'sync: live\n');
 
-	const [domains, playbook] = await Promise.all([
-		discoverDomains(),
+	const [slugs, playbook] = await Promise.all([
+		discoverDomainSlugs(),
 		fetchText(AGENTS_URL),
 		assertDocsMcp(),
 	]);
 
-	if (!domains.length)
+	if (!slugs.length)
 		throw new Error('no domains discovered from the combined spec');
 	if (playbook.length < 1000)
 		throw new Error(
 			`/AGENTS.md too short (${playbook.length} bytes), refusing to ship`,
 		);
 
-	console.log(
-		`discovered ${domains.length} domains: ${domains.map((d) => d.slug).join(', ')}`,
-	);
+	console.log(`discovered ${slugs.length} domains: ${slugs.join(', ')}`);
 	console.log(`playbook: ${playbook.length} bytes from ${AGENTS_URL}\n`);
 
-	const skill = buildSkill(domains, playbook);
+	const skill = buildSkill(playbook);
 	const mcp = buildMcpConfig();
-	const plugin = buildPlugin(domains);
-	const marketplace = buildMarketplace(domains);
+	const plugin = buildPlugin(slugs);
+	const marketplace = buildMarketplace(slugs);
 
 	if (DRY_RUN) {
 		console.log(

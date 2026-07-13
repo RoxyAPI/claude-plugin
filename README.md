@@ -43,7 +43,15 @@ The Docs MCP is keyless and answers questions about the API. To let Claude call 
 }
 ```
 
-Swap `astrology` for any domain (`vedic-astrology`, `tarot`, `numerology`, `human-design`, `forecast`, and more). See the [MCP guide](https://roxyapi.com/docs/mcp).
+Swap `astrology` for any domain. See the [MCP guide](https://roxyapi.com/docs/mcp).
+
+## Remote MCP servers
+
+Every domain is its own Streamable HTTP server at `https://roxyapi.com/mcp/{domain}`. They are hosted, so there is nothing to install, build, or run locally: point an MCP client at the URL and the tools are discovered on connect. Each one is listed and live tested on Glama:
+
+[astrology](https://glama.ai/mcp/connectors/com.roxyapi/astrology) · [vedic-astrology](https://glama.ai/mcp/connectors/com.roxyapi/vedic-astrology) · [numerology](https://glama.ai/mcp/connectors/com.roxyapi/numerology) · [tarot](https://glama.ai/mcp/connectors/com.roxyapi/tarot) · [human-design](https://glama.ai/mcp/connectors/com.roxyapi/human-design) · [forecast](https://glama.ai/mcp/connectors/com.roxyapi/forecast) · [biorhythm](https://glama.ai/mcp/connectors/com.roxyapi/biorhythm) · [iching](https://glama.ai/mcp/connectors/com.roxyapi/iching) · [crystals](https://glama.ai/mcp/connectors/com.roxyapi/crystals) · [dreams](https://glama.ai/mcp/connectors/com.roxyapi/dreams) · [angel-numbers](https://glama.ai/mcp/connectors/com.roxyapi/angel-numbers) · [location](https://glama.ai/mcp/connectors/com.roxyapi/location) · [docs](https://glama.ai/mcp/connectors/com.roxyapi/docs)
+
+This repository is the Claude Code plugin and marketplace, not one of those servers. It carries no MCP server of its own to install: it connects Claude Code to the hosted ones above and ships the Skill that teaches Claude how to use them.
 
 ## What is RoxyAPI
 

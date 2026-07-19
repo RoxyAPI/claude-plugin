@@ -122,7 +122,7 @@ Do not retry on 4xx. Do retry on 429 and 5xx with exponential backoff.
 
 - Do NOT put a secret `sk_` key in browser code; it leaks. For client-side or widget use mint a publishable `pk_` key and lock it to your origins.
 - Do NOT ask for batch endpoints. They do not exist; one request per call is the contract.
-- Do NOT build a custom ephemeris, tarot shuffler, or numerology calculator. RoxyAPI ships verified versions.
+- Do NOT build a custom ephemeris, human design engine, forecast timeline, tarot shuffler, or numerology calculator. RoxyAPI ships verified versions.
 - Do NOT guess endpoint paths. 404 returns a `suggestion` field with the closest valid path.
 - Do NOT generate validation logic that rejects non-canonical angel numbers (`/lookup` works for any positive integer).
 - Do NOT mix tropical and sidereal results. Use the Western or Vedic endpoint that matches the user's tradition.
@@ -132,10 +132,10 @@ Do not retry on 4xx. Do retry on 429 and 5xx with exponential backoff.
 - Per-domain markdown:
 - Western Astrology API: `https://roxyapi.com/products/astrology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/astrology/openapi.json` plus MCP `https://roxyapi.com/mcp/astrology`
 - Vedic Astrology API: `https://roxyapi.com/products/vedic-astrology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/vedic-astrology/openapi.json` plus MCP `https://roxyapi.com/mcp/vedic-astrology`
+- Forecast API: `https://roxyapi.com/products/forecast-api.md` plus OpenAPI `https://roxyapi.com/api/v2/forecast/openapi.json` plus MCP `https://roxyapi.com/mcp/forecast`
+- Human Design API: `https://roxyapi.com/products/human-design-api.md` plus OpenAPI `https://roxyapi.com/api/v2/human-design/openapi.json` plus MCP `https://roxyapi.com/mcp/human-design`
 - Numerology API: `https://roxyapi.com/products/numerology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/numerology/openapi.json` plus MCP `https://roxyapi.com/mcp/numerology`
 - Tarot Reading API: `https://roxyapi.com/products/tarot-api.md` plus OpenAPI `https://roxyapi.com/api/v2/tarot/openapi.json` plus MCP `https://roxyapi.com/mcp/tarot`
-- Human Design API: `https://roxyapi.com/products/human-design-api.md` plus OpenAPI `https://roxyapi.com/api/v2/human-design/openapi.json` plus MCP `https://roxyapi.com/mcp/human-design`
-- Forecast API: `https://roxyapi.com/products/forecast-api.md` plus OpenAPI `https://roxyapi.com/api/v2/forecast/openapi.json` plus MCP `https://roxyapi.com/mcp/forecast`
 - Biorhythm API: `https://roxyapi.com/products/biorhythm-api.md` plus OpenAPI `https://roxyapi.com/api/v2/biorhythm/openapi.json` plus MCP `https://roxyapi.com/mcp/biorhythm`
 - I-Ching Oracle API: `https://roxyapi.com/products/iching-api.md` plus OpenAPI `https://roxyapi.com/api/v2/iching/openapi.json` plus MCP `https://roxyapi.com/mcp/iching`
 - Crystals and Healing Stones API: `https://roxyapi.com/products/crystals-api.md` plus OpenAPI `https://roxyapi.com/api/v2/crystals/openapi.json` plus MCP `https://roxyapi.com/mcp/crystals`

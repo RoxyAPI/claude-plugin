@@ -19,7 +19,7 @@ If your agent speaks MCP, connect the public Docs server first: `https://roxyapi
 { "mcpServers": { "roxy-docs": { "type": "http", "url": "https://roxyapi.com/mcp/docs" } } }
 ```
 
-For live API calls add a per-domain server (`https://roxyapi.com/mcp/{domain}`) with your `X-API-Key`.
+For live API calls add a per-domain server (`https://roxyapi.com/mcp/{domain}`) with your `X-API-Key`. Pass `compact: true` on any tool call for a lossless, token-optimized response that cuts the LLM tokens per call by roughly 40 to 52 percent (same data, each field name sent once), lowering your agent inference cost at no change to quota.
 
 ## Rule 0: Location first, charts second
 

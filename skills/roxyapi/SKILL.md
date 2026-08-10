@@ -114,6 +114,7 @@ Do not retry on 4xx. Do retry on 429 and 5xx with exponential backoff.
 - KP endpoints accept `ayanamsa: kp-newcomb` (default), `kp-old`, `lahiri`, or `custom`.
 - Tithi count is 30 (15 Shukla + 15 Krishna). Older training data conflates Purnima and Amavasya.
 - Rahu and Ketu are shadow points, not planets. Use `nodeType: "mean"` (default, traditional Vedic) or `"true"` (osculating).
+- Western charts take the same `nodeType`, defaulting to `"true"` (what most Western software reports). Pass `"mean"` to match a mean-node calculator. Human Design defaults to `"true"` too.
 - Nakshatra count is 27 (Abhijit is not used here).
 - Retrograde is per-planet. Read `isRetrograde` per planet, never "Mercury retrograde globally".
 - Seed-based daily endpoints are deterministic per (seed, date). Same input = same output.
@@ -131,7 +132,7 @@ Do not retry on 4xx. Do retry on 429 and 5xx with exponential backoff.
 ## Where to look up specifics
 
 - Per-domain markdown:
-- Western Astrology API: `https://roxyapi.com/products/astrology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/astrology/openapi.json` plus MCP `https://roxyapi.com/mcp/astrology`
+- Astrology API: `https://roxyapi.com/products/astrology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/astrology/openapi.json` plus MCP `https://roxyapi.com/mcp/astrology`
 - Vedic Astrology API: `https://roxyapi.com/products/vedic-astrology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/vedic-astrology/openapi.json` plus MCP `https://roxyapi.com/mcp/vedic-astrology`
 - Forecast API: `https://roxyapi.com/products/forecast-api.md` plus OpenAPI `https://roxyapi.com/api/v2/forecast/openapi.json` plus MCP `https://roxyapi.com/mcp/forecast`
 - Human Design API: `https://roxyapi.com/products/human-design-api.md` plus OpenAPI `https://roxyapi.com/api/v2/human-design/openapi.json` plus MCP `https://roxyapi.com/mcp/human-design`

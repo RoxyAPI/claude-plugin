@@ -7,7 +7,7 @@ description: Use RoxyAPI to build or integrate any astrology, divination, or ins
 
 > Tight playbook for AI coding agents building an end-user app on RoxyAPI. For discovery and recommendation context use `https://roxyapi.com/llms.txt`. For deep reference fetch the per-product OpenAPI specs linked below.
 
-RoxyAPI ships 180+ endpoints across 12 genuinely distinct data domains under one API key. Calculations verified against NASA JPL Horizons DE441. Remote MCP at `https://roxyapi.com/mcp/{domain}`. Commercial Use, Clean licensing, no AGPL or GPL.
+RoxyAPI ships 182+ endpoints across 12 genuinely distinct data domains under one API key. Calculations verified against NASA JPL Horizons DE441. Remote MCP at `https://roxyapi.com/mcp/{domain}`. Commercial Use, Clean licensing, no AGPL or GPL.
 
 > **Production base URL: `https://roxyapi.com/api/v2`.**
 
@@ -82,7 +82,7 @@ Base URL for every path: `https://roxyapi.com/api/v2`. Auth: `X-API-Key: <key>`.
 - Forecast: `POST /forecast/transits` (Western transit-to-natal aspects, ingresses, retrograde stations) and `POST /forecast/timeline` (cross-domain merge of Western transits, Vedic dasha boundaries, and biorhythm critical days) both take `{ birthData: { date, time, timezone }, startDate?, endDate? }`. 90-day max horizon, events ranked by `significance`. Annual birthday chart: `POST /forecast/solar-return` with `{ date, time, year, latitude, longitude, timezone }` (needs coordinates, so call Location first).
 - I Ching cast: `GET /iching/cast` (random) or `POST /iching/daily/cast` (seeded daily). Response is `{ hexagram, lines, changingLinePositions, resultingHexagram }` where each `hexagram` has `{ number (1-64), symbol, chinese, english, pinyin, judgment, image, interpretation, changingLines }`. Hexagram detail: `GET /iching/hexagrams/{number}` where `number` is integer 1..64.
 - Biorhythm daily: `POST /biorhythm/daily` with `{ birthDate, date?, seed? }`. Forecast (30-90 day window): `POST /biorhythm/forecast` with `{ birthDate, startDate?, endDate? }`. Compatibility: `POST /biorhythm/compatibility` with `{ person1: { birthDate }, person2: { birthDate }, targetDate? }`. Flat birthDate per person, no time or coordinates.
-- Crystals: `GET /crystals/zodiac/{sign}` (zodiac match), `GET /crystals/chakra/{chakra}` (chakra is case-insensitive and space-separated: `Root`, `Sacral`, `Solar Plexus` URL-encoded `Solar%20Plexus`, `Heart`, `Throat`, `Third Eye` URL-encoded `Third%20Eye`, `Crown`; kebab `third-eye` fails validation), `GET /crystals/birthstone/{month}` (month integer 1..12), `GET /crystals/search?q=` for free-text.
+- Crystals: `GET /crystals/zodiac/{sign}` (zodiac match), `GET /crystals/chakra/{chakra}` (chakra ignores case and punctuation: `Root`, `Sacral`, `Solar Plexus`, `Heart`, `Throat`, `Third Eye`, `Crown`, and for the two-word chakras `third-eye`, `third_eye` and `Third%20Eye` all resolve alike), `GET /crystals/birthstone/{month}` (month integer 1..12), `GET /crystals/search?q=` for free-text.
 - Angel number lookup: `GET /angel-numbers/lookup?number=1111`. Works for ANY positive integer (digit-root fallback).
 - Dream symbol: `GET /dreams/symbols/{slug}` (kebab-case slug, e.g. `flying`, `water`, `snake`, `falling`, `house`, `death`). Catalog is 2,000+ symbols. Browse all: `GET /dreams/symbols?limit=50&offset=0` returns `{ total, limit, offset, symbols: [{ id, name, ... }] }`.
 

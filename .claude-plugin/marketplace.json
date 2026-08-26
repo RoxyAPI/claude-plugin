@@ -3,7 +3,7 @@
 	"owner": {
 		"name": "RoxyAPI"
 	},
-	"description": "RoxyAPI: the multi domain spiritual intelligence API and Remote MCP. One plugin connects Claude Code to verified astrology, Vedic, tarot, numerology, human design, forecast, and more.",
+	"description": "RoxyAPI: the multi domain spiritual intelligence API and Remote MCP. One plugin connects Claude Code to verified astrology, Vedic, forecast, human design, Chinese astrology, feng shui, numerology, tarot, and more.",
 	"plugins": [
 		{
 			"name": "roxyapi",

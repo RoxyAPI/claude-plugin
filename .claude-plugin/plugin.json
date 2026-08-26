@@ -1,6 +1,6 @@
 {
 	"name": "roxyapi",
-	"description": "RoxyAPI multi domain spiritual intelligence API and Remote MCP for Claude Code. Auto connects the keyless Docs MCP and ships a skill that teaches Claude how to build natal charts, Vedic kundli, tarot, numerology, human design, forecasts, and more, all under one key.",
+	"description": "RoxyAPI multi domain spiritual intelligence API and Remote MCP for Claude Code. Auto connects the keyless Docs MCP and ships a skill that teaches Claude how to build natal charts, Vedic kundli, forecasts, human design, Chinese astrology, feng shui, numerology, tarot, and more, all under one key.",
 	"author": {
 		"name": "RoxyAPI"
 	},

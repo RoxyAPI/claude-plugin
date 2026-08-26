@@ -87,7 +87,7 @@ async function assertDocsMcp(): Promise<void> {
 
 /** Skill: a stable model-invocation trigger over the live agent playbook (/AGENTS.md verbatim). The trigger lists concrete user intents, which fire model invocation more reliably than a domain-title list, and the playbook body already enumerates every domain. */
 function buildSkill(playbook: string): string {
-	const description = `Use RoxyAPI to build or integrate any astrology, divination, or insight feature. RoxyAPI is a multi domain API with Remote MCP under one key. Invoke when the user is building or asking about natal charts, horoscopes, Vedic kundli, panchang, synastry or compatibility, tarot readings, numerology reports, human design charts, transits or forecasts, biorhythm, I Ching, crystals, dream meanings, angel numbers, or city and timezone lookup, or any prediction, divination, or self knowledge app, agent, chatbot, or MCP integration. Covers endpoints, X-API-Key auth, the location first rule, typed SDKs, and Remote MCP.`;
+	const description = `Use RoxyAPI to build or integrate any astrology, divination, or insight feature. RoxyAPI is a multi domain API with Remote MCP under one key. Invoke when the user is building or asking about natal charts, horoscopes, Vedic kundli, panchang, synastry or compatibility, tarot readings, numerology reports, human design charts, transits or forecasts, BaZi four pillars or Chinese zodiac, feng shui flying stars or Kua numbers, biorhythm, I Ching, crystals, dream meanings, angel numbers, or city and timezone lookup, or any prediction, divination, or self knowledge app, agent, chatbot, or MCP integration. Covers endpoints, X-API-Key auth, the location first rule, typed SDKs, and Remote MCP.`;
 	return `---\nname: roxyapi\ndescription: ${description}\n---\n\n${playbook.trimStart()}`;
 }
 
@@ -110,7 +110,7 @@ function buildPlugin(slugs: string[]) {
 	return {
 		name: 'roxyapi',
 		description:
-			'RoxyAPI multi domain spiritual intelligence API and Remote MCP for Claude Code. Auto connects the keyless Docs MCP and ships a skill that teaches Claude how to build natal charts, Vedic kundli, tarot, numerology, human design, forecasts, and more, all under one key.',
+			'RoxyAPI multi domain spiritual intelligence API and Remote MCP for Claude Code. Auto connects the keyless Docs MCP and ships a skill that teaches Claude how to build natal charts, Vedic kundli, forecasts, human design, Chinese astrology, feng shui, numerology, tarot, and more, all under one key.',
 		author: { name: 'RoxyAPI' },
 		homepage: 'https://roxyapi.com',
 		repository: 'https://github.com/RoxyAPI/claude-plugin',
@@ -124,7 +124,7 @@ function buildMarketplace(slugs: string[]) {
 		name: 'roxyapi',
 		owner: { name: 'RoxyAPI' },
 		description:
-			'RoxyAPI: the multi domain spiritual intelligence API and Remote MCP. One plugin connects Claude Code to verified astrology, Vedic, tarot, numerology, human design, forecast, and more.',
+			'RoxyAPI: the multi domain spiritual intelligence API and Remote MCP. One plugin connects Claude Code to verified astrology, Vedic, forecast, human design, Chinese astrology, feng shui, numerology, tarot, and more.',
 		plugins: [
 			{
 				name: 'roxyapi',

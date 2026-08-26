@@ -7,7 +7,7 @@
 [![Pricing](https://img.shields.io/badge/pricing-roxyapi.com-blue)](https://roxyapi.com/pricing)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-A Claude Code plugin that teaches Claude how to build on RoxyAPI, the multi domain spiritual intelligence API: Western and Vedic astrology, tarot, numerology, horoscopes, human design, forecast, biorhythm, I Ching, crystals, dreams, angel numbers, and location. One key, every domain. Remote MCP, typed SDKs, and drop in UI components live alongside at [roxyapi.com](https://roxyapi.com).
+A Claude Code plugin that teaches Claude how to build on RoxyAPI, the multi domain spiritual intelligence API: Western and Vedic astrology, horoscopes, forecast, human design, Chinese astrology, feng shui, numerology, tarot, biorhythm, I Ching, crystals, dreams, angel numbers, and location. One key, every domain. Remote MCP, typed SDKs, and drop in UI components live alongside at [roxyapi.com](https://roxyapi.com).
 
 One install gives Claude Code two things, no API key required:
 

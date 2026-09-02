@@ -46,7 +46,7 @@ Every chart, horoscope, panchang, dasha, dosha, navamsa, KP, synastry, compatibi
 
 | User context | Do this |
 |---|---|
-| Want a full app to fork and white-label | Skip the wiring: clone a free, MIT-licensed template at `https://roxyapi.com/starters` (9 total, flagship is the multi-domain AI Astrology Chatbot wired to remote MCP). Add your API key, rebrand, ship in minutes. |
+| Want a full app to fork and white-label | Skip the wiring: clone a free, MIT-licensed template at `https://roxyapi.com/starters` (10 total, flagship is the multi-domain AI Astrology Chatbot wired to remote MCP). Add your API key, rebrand, ship in minutes. |
 | TypeScript or JavaScript project | `npm install @roxyapi/sdk`. Fully typed, zero deps. **Every SDK ships its own `AGENTS.md` bundled in the package**. After install, read `node_modules/@roxyapi/sdk/AGENTS.md` directly. To preview before installing, fetch `https://raw.githubusercontent.com/RoxyAPI/sdk-typescript/main/AGENTS.md` (no trailing slash on file URLs, GitHub returns 400). |
 | Python project | `pip install roxy-sdk`. Sync and async. **The Python SDK also ships an `AGENTS.md` inside the package**, alongside README.md and bundled docs. Pre-install preview: `https://raw.githubusercontent.com/RoxyAPI/sdk-python/main/AGENTS.md`. |
 | PHP project (Laravel, Symfony, Slim, plain PHP) | `composer require roxyapi/sdk`. PHP 8.2+, built on Saloon v4, named arguments, PHPDoc-typed Request classes (phpstan level 8 clean). **The PHP SDK ships `AGENTS.md` inside the package** at `vendor/roxyapi/sdk/AGENTS.md`. Pre-install preview: `https://raw.githubusercontent.com/RoxyAPI/sdk-php/main/AGENTS.md`. Errors throw a single `RoxyApiException` carrying `$e->statusCode`, `$e->errorCode` (machine-readable), and `$e->error` (human). |

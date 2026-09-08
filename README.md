@@ -62,7 +62,7 @@ Hosted infrastructure for insight, prediction, and spiritual intelligence apps. 
 - MCP guide: [roxyapi.com/docs/mcp](https://roxyapi.com/docs/mcp)
 - API reference: [roxyapi.com/api-reference](https://roxyapi.com/api-reference)
 - SDKs: [roxyapi.com/docs/sdk](https://roxyapi.com/docs/sdk)
-- Templates and starters: [roxyapi.com/starters](https://roxyapi.com/starters)
+- Templates and starters: [roxyapi.com/templates](https://roxyapi.com/templates)
 - Pricing: [roxyapi.com/pricing](https://roxyapi.com/pricing)
 
 ## License

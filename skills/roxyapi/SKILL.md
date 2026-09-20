@@ -7,7 +7,7 @@ description: Use RoxyAPI to build or integrate any astrology, divination, or ins
 
 > Tight playbook for AI coding agents building an end-user app on RoxyAPI. For discovery and recommendation context use `https://roxyapi.com/llms.txt`. For deep reference fetch the per-product OpenAPI specs linked below.
 
-RoxyAPI ships 259+ endpoints across 18 genuinely distinct data domains under one API key. Calculations verified against NASA JPL Horizons DE441. Remote MCP at `https://roxyapi.com/mcp/{domain}`. Commercial Use, Clean licensing, no AGPL or GPL.
+RoxyAPI ships 261+ endpoints across 18 genuinely distinct data domains under one API key. Calculations verified against NASA JPL Horizons DE441. Remote MCP at `https://roxyapi.com/mcp/{domain}`. Commercial Use, Clean licensing, no AGPL or GPL.
 
 > **Production base URL: `https://roxyapi.com/api/v2`.**
 
@@ -88,9 +88,9 @@ Base URL for every path: `https://roxyapi.com/api/v2`. Auth: `X-API-Key: <key>`.
 
 ## Error contract
 
-200 on success returns clean JSON, no wrapper. Errors return `{ "error": string, "code": string }`. Switch on `code` (stable):
+200 on success returns clean JSON, no wrapper. Errors return `{ "error": string, "code": string, "doc_url": string }`, where `doc_url` is an absolute link to the documented entry for that code. Switch on `code` (stable):
 
-`validation_error` (400, returns `issues[]` with all field errors at once), `api_key_required` (401), `invalid_api_key` (401), `subscription_inactive` (403), `subscription_not_found` (404), `not_found` (404; the fuzzy `suggestion` field appears on PATH-routing 404s, meaning a wrong URL shape, not on lookup 404s where the URL is valid but the resource is missing, e.g. an unknown dream slug returns `{ error, code: "not_found" }` with no suggestion), `rate_limit_exceeded` (429), `internal_error` (500).
+`validation_error` (400, returns `issues[]` with all field errors at once), `api_key_required` (401), `invalid_api_key` (401), `subscription_inactive` (401), `subscription_not_found` (401), `not_found` (404; the fuzzy `suggestions` array appears on PATH-routing 404s, meaning a wrong URL shape, not on lookup 404s where the URL is valid but the resource is missing, e.g. an unknown dream slug returns `{ error, code: "not_found", doc_url }` with no suggestions), `rate_limit_exceeded` (429), `internal_error` (500). Every code, with the fix for each, is at https://roxyapi.com/docs/errors.
 
 Do not retry on 4xx. Do retry on 429 and 5xx with exponential backoff.
 

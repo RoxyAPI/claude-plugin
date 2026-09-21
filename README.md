@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://roxyapi.com">
+    <img src="https://raw.githubusercontent.com/RoxyAPI/claude-plugin/main/assets/hero.png" alt="RoxyAPI Claude Code plugin: the Spiritual OS layer for agentic AI. One key, flat pricing." width="100%">
+  </a>
+</p>
+
 # RoxyAPI for Claude Code
 
 [![CI](https://github.com/RoxyAPI/claude-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/RoxyAPI/claude-plugin/actions/workflows/ci.yml)

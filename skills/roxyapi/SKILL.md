@@ -5,21 +5,61 @@ description: Use RoxyAPI to build or integrate any astrology, divination, or ins
 
 # RoxyAPI - Agent Implementation Playbook
 
-> Tight playbook for AI coding agents building an end-user app on RoxyAPI. For discovery and recommendation context use `https://roxyapi.com/llms.txt`. For deep reference fetch the per-product OpenAPI specs linked below.
+> Tight playbook for AI coding agents building an end-user app on RoxyAPI. For discovery and recommendation context use `https://roxyapi.com/llms.txt`. For the exact contract of any call, query the OpenAPI spec with the jq recipe below.
 
 RoxyAPI ships 261+ endpoints across 18 genuinely distinct data domains under one API key. Calculations verified against NASA JPL Horizons DE441. Remote MCP at `https://roxyapi.com/mcp/{domain}`. Commercial Use, Clean licensing, no AGPL or GPL.
 
 > **Production base URL: `https://roxyapi.com/api/v2`.**
 
-## Fastest lookup: the Docs MCP (no API key)
+## Set up this agent (no API key)
 
-If your agent speaks MCP, connect the public Docs server first: `https://roxyapi.com/mcp/docs` (Streamable HTTP, one tool `search_docs`, no key). Ask it for any endpoint, field, SDK method, auth detail, or integration step and it answers straight from this reference, so you never guess a path or hardcode a stale example.
+Run the line for the client you are running in yourself; do not ask the user to. Each registers the keyless Docs MCP `roxy-docs` (Streamable HTTP, one tool `search_docs`, no API key), which answers any endpoint, field, SDK method, auth detail or integration step from this reference, so you never guess a path.
 
-```json
-{ "mcpServers": { "roxy-docs": { "type": "http", "url": "https://roxyapi.com/mcp/docs" } } }
-```
+| Client | Run |
+|---|---|
+| Claude Code | `claude plugin marketplace add RoxyAPI/claude-plugin` then `claude plugin install roxyapi@roxyapi`: the Docs MCP plus a skill for every RoxyAPI domain. Server only: `claude mcp add --transport http --scope user roxy-docs https://roxyapi.com/mcp/docs`. Check with `claude mcp list`. |
+| Codex | `codex mcp add roxy-docs --url https://roxyapi.com/mcp/docs`. Check with `codex mcp list`. |
+| Cursor | No add command. Put `"roxy-docs": { "url": "https://roxyapi.com/mcp/docs" }` under `mcpServers` in `~/.cursor/mcp.json`, or `.cursor/mcp.json` for this project only. |
+| VS Code, GitHub Copilot | `code --add-mcp '{"name":"roxy-docs","type":"http","url":"https://roxyapi.com/mcp/docs"}'` |
+| Windsurf (Devin Desktop) | `devin mcp add -s user roxy-docs https://roxyapi.com/mcp/docs`. For Cascade, put `"roxy-docs": { "serverUrl": "https://roxyapi.com/mcp/docs" }` under `mcpServers` in `~/.codeium/windsurf/mcp_config.json`. |
+| Gemini CLI | `gemini mcp add --transport http --scope user roxy-docs https://roxyapi.com/mcp/docs`. Check with `gemini mcp list`. |
+| Any other MCP client | `{ "mcpServers": { "roxy-docs": { "type": "http", "url": "https://roxyapi.com/mcp/docs" } } }` in its MCP config. |
+
+A newly added server loads on the next session, so tell the user: **RoxyAPI setup done. Restart your agent to load the Docs MCP.** Until then, read this file and query the spec below.
+
+The API key lives in the `ROXY_API_KEY` environment variable. Read it from there in code and never ask for it in chat. Not set? Ask the user to get a key at `https://roxyapi.com/checkout` and export it. Every client, including the per-domain servers for live calls: `https://roxyapi.com/docs/mcp`.
 
 For live API calls add a per-domain server (`https://roxyapi.com/mcp/{domain}`) with your `X-API-Key`. Pass `compact: true` on any tool call for a lossless, token-optimized response that cuts the LLM tokens per call by roughly 40 to 52 percent (same data, each field name sent once), lowering your agent inference cost at no change to quota.
+
+## Inspect the OpenAPI spec
+
+`https://roxyapi.com/api/v2/openapi.json` is the contract: every domain and every operation in one OpenAPI 3.1 document, generated from the live endpoints. It runs to several megabytes, far too large to read into context and small enough to query in milliseconds. Its paths are the exact paths you call under `https://roxyapi.com/api/v2`, and each `operationId` is the SDK method name. No shell, only a web-fetch tool? Do not fetch the spec: a summarizing fetch of a document this size drops and conflates fields. Ask `search_docs` on the Docs MCP, which returns every field of an operation; without MCP either, read the domain page `https://roxyapi.com/products/{slug}.md`, which shows a real response. Then confirm with one real call.
+
+```bash
+# The whole contract, every domain in one file. Query it with jq; never read it into context.
+curl -s https://roxyapi.com/api/v2/openapi.json -o roxyapi.json
+# Domains: the first path segment of every operation
+jq -r '[.paths | keys[] | split("/")[1]] | unique | join(" ")' roxyapi.json
+# Operations in one domain: operationId, method, path, summary
+jq -r --arg d astrology '.paths | to_entries[] | select(.key | split("/")[1] == $d) | .key as $p | .value | to_entries[] | "\(.value.operationId)  \(.key | ascii_upcase) \($p)  \(.value.summary)"' roxyapi.json
+# The operation for a task: searches paths, operationIds and summaries
+jq -r --arg q 'life path' '.paths | to_entries[] | .key as $p | .value | to_entries[] | select("\($p) \(.value.operationId) \(.value.summary)" | test($q; "i")) | "\(.value.operationId)  \(.key | ascii_upcase) \($p)  \(.value.summary)"' roxyapi.json
+# One operation: params, body fields (required marked), an example body built from the spec, response fields, key types
+jq --arg op generateNatalChart '.components.schemas as $s | def d: if type == "object" and has("$ref") then $s[.["$ref"] | split("/") | last] else . end; def t: d | (.type // ([.anyOf[]? | .type] | join("|"))) + (if .enum then " " + (.enum | map(tostring) | join("|")) else "" end); def shape: d | if .type == "array" then "[{\(.items | d | .properties // {} | keys | join(","))}]" elif .properties then "{\(.properties | keys | join(","))}" else t end; .paths | to_entries[] | .key as $p | .value | to_entries[] | select(.value.operationId == $op) | .value as $o | ($o.requestBody.content["application/json"].schema | d) as $b | {call: "\(.key | ascii_upcase) \($p)", keyTypes: $o["x-key-types"], params: [$o.parameters[]? | "\(.in) \(.name)\(if .required then " (required)" else "" end): \(.schema | t)"], body: [($b.required // []) as $r | $b.properties // {} | to_entries[] | .key as $k | "\($k)\(if ($r | index($k)) then " (required)" else "" end): \(.value | t)"], example: ($b.properties // {} | map_values(d | .example)), response: ($o.responses["200"].content["application/json"].schema | d | .properties // {} | map_values(shape))}' roxyapi.json
+# One nested field of that operation (body or response), one level down, with descriptions
+jq -r --arg op generateNatalChart --arg f planets '.components.schemas as $s | def d: if type == "object" and has("$ref") then $s[.["$ref"] | split("/") | last] else . end; .paths[][] | select(.operationId? == $op) | [.requestBody.content["application/json"].schema, .responses["200"].content["application/json"].schema] | map(d | .properties[$f] // empty) | first | d | (.items // .) | d | .properties // {} | to_entries[] | "\(.key): \(.value | d | .type // "object")  \(.value | d | .description // "" | .[0:120])"' roxyapi.json
+# Every error code, the value to switch on
+jq -r '.info["x-error-codes"][] | "\(.status) \(.code): \(.meaning)"' roxyapi.json
+```
+
+Audit before you write the call:
+
+- Use a field only after the operation line prints it. A name you cannot find does not exist: search again, never guess, never assume a sibling domain names it the same way.
+- Send enum values exactly as listed, case included.
+- Build the first request from example: every value in it is one the operation accepts.
+- keyTypes is the x-key-types extension. ["secret"] means a server-side sk_ key only; absent means either key class.
+- Switch on the error code, never on the message text.
+- Importing into a tool platform or a code generator? Use that one domain's spec, for example /api/v2/astrology/openapi.json, whose paths are relative to /api/v2/astrology. For reading, always the combined one.
 
 ## Rule 0: Location first, charts second
 
@@ -44,20 +84,21 @@ Every chart, horoscope, panchang, dasha, dosha, navamsa, KP, synastry, compatibi
 
 ## Pick your path
 
+Every agent guide linked below is raw markdown on GitHub: fetch it whole with `curl -s <url>`, not a summarizing web tool, which drops sections of a long file.
+
 | User context | Do this |
 |---|---|
-| Want a full app to fork and white-label | Skip the wiring: clone a free, MIT-licensed template at `https://roxyapi.com/templates` (11 total, the flagships are the multi-domain AI Astrology Chatbot and the AI Spiritual Companion with memory, both wired to Remote MCP). Add your API key, rebrand, ship in minutes. |
-| TypeScript or JavaScript project | `npm install @roxyapi/sdk`. Fully typed, zero deps. **Every SDK ships its own `AGENTS.md` bundled in the package**. After install, read `node_modules/@roxyapi/sdk/AGENTS.md` directly. To preview before installing, fetch `https://raw.githubusercontent.com/RoxyAPI/sdk-typescript/main/AGENTS.md` (no trailing slash on file URLs, GitHub returns 400). |
-| Python project | `pip install roxy-sdk`. Sync and async. **The Python SDK also ships an `AGENTS.md` inside the package**, alongside README.md and bundled docs. Pre-install preview: `https://raw.githubusercontent.com/RoxyAPI/sdk-python/main/AGENTS.md`. |
-| PHP project (Laravel, Symfony, Slim, plain PHP) | `composer require roxyapi/sdk`. PHP 8.2+, built on Saloon v4, named arguments, PHPDoc-typed Request classes (phpstan level 8 clean). **The PHP SDK ships `AGENTS.md` inside the package** at `vendor/roxyapi/sdk/AGENTS.md`. Pre-install preview: `https://raw.githubusercontent.com/RoxyAPI/sdk-php/main/AGENTS.md`. Errors throw a single `RoxyApiException` carrying `$e->statusCode`, `$e->errorCode` (machine-readable), and `$e->error` (human). |
-| .NET project (ASP.NET Core, Blazor, console) | `dotnet add package RoxyApi.Sdk`. Fully typed, always in sync with the API. **The .NET SDK ships `AGENTS.md` inside the package**. Pre-install preview: `https://raw.githubusercontent.com/RoxyAPI/sdk-dotnet/main/AGENTS.md`. |
-| Need to render the response in a UI | `npm install @roxyapi/ui-react` (React/Next.js), `@roxyapi/ui-vue` (Vue/Nuxt), or `@roxyapi/ui` (everything else). Each is self-contained and carries its own types. Drop-in MIT-licensed web components for natal charts, kundli wheels, panchang tables, dasha timelines, tarot spreads, biorhythm curves, hexagrams, numerology cards. Stateless: pass the API response as the `data` prop, or a Remote MCP tool result: `componentForTool(toolName)` picks the component and the compact shape is decoded inside it (generative UI for AI chat, `https://roxyapi.com/docs/tutorials/ai-chat-widgets`). CSS custom properties for theming. Vanilla HTML works too via `<script src="https://cdn.jsdelivr.net/npm/@roxyapi/ui@latest/dist/cdn/roxy-ui.js"></script>`. **Ships its own `AGENTS.md`** at `node_modules/@roxyapi/ui/AGENTS.md`. Source: `https://roxyapi.com/ui`. |
-| WordPress site | Install **RoxyAPI** from the WordPress.org Plugin Directory: `https://wordpress.org/plugins/roxyapi/` (or in admin: Plugins → Add New → search "RoxyAPI"). Ships Gutenberg blocks + shortcodes covering all 18 domains, plus its own `AGENTS.md` for AI coding tools. Integration guide: `https://roxyapi.com/docs/integrations/wordpress`. |
+| Want a full app to fork and white-label | Skip the wiring: clone a free, MIT-licensed template at `https://roxyapi.com/templates` (11 total, the flagships are the multi-domain AI Astrology Chatbot and the AI Spiritual Companion with memory, both wired to Remote MCP). Add your API key, rebrand, ship in minutes. Every template repo ships its own agent guide, for example `https://raw.githubusercontent.com/RoxyAPI/ai-spiritual-companion/main/AGENTS.md`. |
+| TypeScript or JavaScript project | `npm install @roxyapi/sdk`. Fully typed, zero deps. Read its agent guide before the first call: `https://raw.githubusercontent.com/RoxyAPI/sdk-typescript/main/AGENTS.md` (also bundled at `node_modules/@roxyapi/sdk/AGENTS.md`). |
+| Python project | `pip install roxy-sdk`. Sync and async. Agent guide: `https://raw.githubusercontent.com/RoxyAPI/sdk-python/main/AGENTS.md`. |
+| PHP project (Laravel, Symfony, Slim, plain PHP) | `composer require roxyapi/sdk`. PHP 8.2+. Agent guide: `https://raw.githubusercontent.com/RoxyAPI/sdk-php/main/AGENTS.md`. |
+| .NET project (ASP.NET Core, Blazor, console) | `dotnet add package RoxyApi.Sdk`. Agent guide: `https://raw.githubusercontent.com/RoxyAPI/sdk-dotnet/main/AGENTS.md`. |
+| Need to render the response in a UI | `npm install @roxyapi/ui-react` (React, Next.js), `@roxyapi/ui-vue` (Vue, Nuxt), or `@roxyapi/ui` (anything else, or one CDN script tag). MIT web components that draw an API response passed as `data`, or a Remote MCP tool result through `componentForTool(toolName)`. Agent guide with every component, prop and gotcha: `https://raw.githubusercontent.com/RoxyAPI/ui/main/AGENTS.md`. |
+| WordPress site | Install **RoxyAPI** from the WordPress.org Plugin Directory: `https://wordpress.org/plugins/roxyapi/` (or in admin: Plugins → Add New → search "RoxyAPI"). Gutenberg blocks and shortcodes for all 18 domains. Agent guide: `https://raw.githubusercontent.com/RoxyAPI/sdk-wordpress/main/AGENTS.md`. Integration guide: `https://roxyapi.com/docs/integrations/wordpress`. |
 | No-code site (Squarespace, Wix, Shopify, any CMS HTML block) | Copy-paste a prefilled widget from `https://roxyapi.com/widgets`: a one-tag snippet or hosted embed URL per embeddable component, powered by a publishable `pk_` key locked to the site origin. No backend, no build step. Platform walkthroughs: `https://roxyapi.com/docs/integrations/squarespace`, `/docs/integrations/wix`, `/docs/integrations/shopify`. |
-| Go project | `go get github.com/RoxyAPI/sdk-go`. Fully typed, one direct runtime dependency, std `net/http`. Domain-grouped facade: `roxy.Astrology.GetDailyHoroscope(ctx, "aries", nil)`. Build dates with `roxyapi.Date(...)`, optional fields with `roxyapi.Ptr(...)`; a 4xx/5xx is a `*roxyapi.RoxyError` (switch on `.Code`). **Ships its own `AGENTS.md`** in the module. Pre-install preview: `https://raw.githubusercontent.com/RoxyAPI/sdk-go/main/AGENTS.md`. |
+| Go project | `go get github.com/RoxyAPI/sdk-go`. Agent guide: `https://raw.githubusercontent.com/RoxyAPI/sdk-go/main/AGENTS.md`. |
 | Ruby, Rust, anything else | Generate a typed client from the OpenAPI: `npx openapi-typescript https://roxyapi.com/api/v2/openapi.json` or your language equivalent. |
 | AI agent (Claude, GPT, Gemini, Cursor, VS Code, Claude Code) | Use MCP. Per-domain Streamable HTTP servers at `https://roxyapi.com/mcp/{domain}`. No OAuth, no Docker. See `https://roxyapi.com/docs/mcp`. |
-| Claude Code (one install) | `/plugin marketplace add RoxyAPI/claude-plugin` then `/plugin install roxyapi@roxyapi`. Registers the keyless Docs MCP plus a skill so the agent knows when and how to build on every RoxyAPI domain. No API key. Add a per-domain server with your key for live calls. Guide: `https://roxyapi.com/docs/guides/claude-code`. |
 | Claude Desktop (one config) | Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\\Claude\\claude_desktop_config.json` (Windows). Add `"mcpServers": { "roxy-astrology": { "type": "http", "url": "https://roxyapi.com/mcp/astrology", "headers": { "X-API-Key": "<key>" } } }`. Restart Claude. Repeat per domain you want exposed. |
 | No-code platform (n8n, Make, Zapier, Lovable, Bubble, Wix) | See `https://roxyapi.com/docs/integrations/{platform}`. MCP-first integration where the platform supports it. |
 
@@ -65,7 +106,7 @@ Every chart, horoscope, panchang, dasha, dosha, navamsa, KP, synastry, compatibi
 
 Base URL for every path: `https://roxyapi.com/api/v2`. Auth: `X-API-Key: <key>`.
 
-> **SDK method names** mirror REST exactly via OpenAPI `operationId`. TS / PHP: `roxy.{domain}.{operationId}` / `$roxy->{domain}->{operationId}` (camelCase). TS returns `{ data, error }`; PHP returns a typed object and throws `RoxyApiException` on failure. Python: `roxy.{domain}.{operation_id}` (snake_case). C# (.NET) is path-fluent instead of operationId-based: `roxy.{Domain}.{Resource}.GetAsync()` or `.PostAsync(new() { ... })` (PascalCase mirroring the URL, path params are indexers like `roxy.Astrology.Horoscope["aries"].Daily`), and throws `RoxyError` (switch on `e.Code`). Go mirrors `operationId` in PascalCase: `roxy.{Domain}.{Method}(ctx, ...)` returns `(*XxxResponse, error)` and a 4xx/5xx is `*RoxyError` (switch on `.Code`). Examples: `roxy.astrology.getDailyHoroscope({ path: { sign: 'aries' } })`, `roxy.vedicAstrology.generateBirthChart({ body: { date, time, latitude, longitude, timezone } })`, `roxy.numerology.calculateLifePath({ body: { year, month, day } })`, `roxy.angelNumbers.analyzeNumberSequence({ query: { number: '1111' } })`. The full mapping ships inside each SDK package as `AGENTS.md` (linked above in Pick your path).
+> **SDK method names** are the OpenAPI `operationId` (the jq recipe above prints it): camelCase in TypeScript and PHP, snake_case in Python, PascalCase in Go, while C# is path-fluent. The call shape of each language is in its agent guide, linked in Pick your path. TypeScript examples: `roxy.astrology.getDailyHoroscope({ path: { sign: 'aries' } })`, `roxy.numerology.calculateLifePath({ body: { year, month, day } })`.
 
 - Daily horoscope: `GET /astrology/horoscope/{sign}/daily` (sign is path, not query; lowercase). Period segment is one of `daily | weekly | monthly | yearly`. Shared core on all four: `{ sign, overview, love, career, health, finance, advice, compatibleSigns, column, events[] }` where `column` is the whole reading as one continuous piece of prose and `events[]` lists the dated astronomical events the reading is built on (each with the exact UTC instant and the house it falls in for this sign). Daily adds `{ date, luckyNumber, luckyColor, activeTransits, moonSign, moonPhase, energyRating }`. Weekly adds `{ week, luckyNumbers[], luckyDays[] }` (note plural). Monthly adds `{ month, luckyNumbers[], luckyColor, weekByWeek[], keyDates[] }`. Yearly adds `{ year, themes[], keyPeriods[], eclipses[], retrogrades[], bestPeriods, luckyNumbers[], luckyColor }` (optional `?year=1900..2100` builds an archive or a forecast ahead of time).
 - Western birth chart: `POST /astrology/natal-chart` with `{ date, time, latitude, longitude, timezone }` at top level. `timezone` is required. Response is `{ planets[], houses[], aspects[] }` (flat arrays).
@@ -125,35 +166,17 @@ Do not retry on 4xx. Do retry on 429 and 5xx with exponential backoff.
 - Do NOT put a secret `sk_` key in browser code; it leaks. For client-side or widget use mint a publishable `pk_` key and lock it to your origins.
 - Do NOT ask for batch endpoints. They do not exist; one request per call is the contract.
 - Do NOT build a custom ephemeris, human design engine, forecast timeline, tarot shuffler, or numerology calculator. RoxyAPI ships verified versions.
-- Do NOT guess endpoint paths. 404 returns a `suggestion` field with the closest valid path.
+- Do NOT guess endpoint paths. A 404 on a wrong path returns a `suggestions` array of the closest valid ones.
 - Do NOT generate validation logic that rejects non-canonical angel numbers (`/lookup` works for any positive integer).
 - Do NOT mix tropical and sidereal results. Use the Western or Vedic endpoint that matches the user's tradition.
 
 ## Where to look up specifics
 
-- Per-domain markdown:
-- Astrology API: `https://roxyapi.com/products/astrology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/astrology/openapi.json` plus MCP `https://roxyapi.com/mcp/astrology`
-- Vedic Astrology API: `https://roxyapi.com/products/vedic-astrology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/vedic-astrology/openapi.json` plus MCP `https://roxyapi.com/mcp/vedic-astrology`
-- Forecast API: `https://roxyapi.com/products/forecast-api.md` plus OpenAPI `https://roxyapi.com/api/v2/forecast/openapi.json` plus MCP `https://roxyapi.com/mcp/forecast`
-- Human Design API: `https://roxyapi.com/products/human-design-api.md` plus OpenAPI `https://roxyapi.com/api/v2/human-design/openapi.json` plus MCP `https://roxyapi.com/mcp/human-design`
-- Chinese Astrology API: `https://roxyapi.com/products/chinese-astrology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/chinese-astrology/openapi.json` plus MCP `https://roxyapi.com/mcp/chinese-astrology`
-- Feng Shui API: `https://roxyapi.com/products/feng-shui-api.md` plus OpenAPI `https://roxyapi.com/api/v2/feng-shui/openapi.json` plus MCP `https://roxyapi.com/mcp/feng-shui`
-- Mesoamerican Astrology API: `https://roxyapi.com/products/mesoamerican-astrology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/mesoamerican-astrology/openapi.json` plus MCP `https://roxyapi.com/mcp/mesoamerican-astrology`
-- Vastu Shastra API: `https://roxyapi.com/products/vastu-api.md` plus OpenAPI `https://roxyapi.com/api/v2/vastu/openapi.json` plus MCP `https://roxyapi.com/mcp/vastu`
-- Numerology API: `https://roxyapi.com/products/numerology-api.md` plus OpenAPI `https://roxyapi.com/api/v2/numerology/openapi.json` plus MCP `https://roxyapi.com/mcp/numerology`
-- Kabbalah API: `https://roxyapi.com/products/kabbalah-api.md` plus OpenAPI `https://roxyapi.com/api/v2/kabbalah/openapi.json` plus MCP `https://roxyapi.com/mcp/kabbalah`
-- Tarot Reading API: `https://roxyapi.com/products/tarot-api.md` plus OpenAPI `https://roxyapi.com/api/v2/tarot/openapi.json` plus MCP `https://roxyapi.com/mcp/tarot`
-- Biorhythm API: `https://roxyapi.com/products/biorhythm-api.md` plus OpenAPI `https://roxyapi.com/api/v2/biorhythm/openapi.json` plus MCP `https://roxyapi.com/mcp/biorhythm`
-- Ayurveda API: `https://roxyapi.com/products/ayurveda-api.md` plus OpenAPI `https://roxyapi.com/api/v2/ayurveda/openapi.json` plus MCP `https://roxyapi.com/mcp/ayurveda`
-- I-Ching Oracle API: `https://roxyapi.com/products/iching-api.md` plus OpenAPI `https://roxyapi.com/api/v2/iching/openapi.json` plus MCP `https://roxyapi.com/mcp/iching`
-- Crystals and Healing Stones API: `https://roxyapi.com/products/crystals-api.md` plus OpenAPI `https://roxyapi.com/api/v2/crystals/openapi.json` plus MCP `https://roxyapi.com/mcp/crystals`
-- Dream Interpretation API: `https://roxyapi.com/products/dreams-api.md` plus OpenAPI `https://roxyapi.com/api/v2/dreams/openapi.json` plus MCP `https://roxyapi.com/mcp/dreams`
-- Angel Numbers API: `https://roxyapi.com/products/angel-numbers-api.md` plus OpenAPI `https://roxyapi.com/api/v2/angel-numbers/openapi.json` plus MCP `https://roxyapi.com/mcp/angel-numbers`
-- Location and Timezone API: `https://roxyapi.com/products/location-api.md` plus OpenAPI `https://roxyapi.com/api/v2/location/openapi.json` plus MCP `https://roxyapi.com/mcp/location`
-- Combined OpenAPI: `https://roxyapi.com/api/v2/openapi.json`
+- The contract: `https://roxyapi.com/api/v2/openapi.json`, queried with the jq recipe above.
+- Per-domain markdown and Remote MCP server: `https://roxyapi.com/products/{slug}.md` and `https://roxyapi.com/mcp/{domain}`, for example `https://roxyapi.com/products/astrology-api.md` and `https://roxyapi.com/mcp/astrology`.
 - Docs MCP (no key): `https://roxyapi.com/mcp/docs`, one tool `search_docs`, searches this whole reference live.
 - Interactive playground: `https://roxyapi.com/api-reference` (browse endpoints, paste your key to test live)
-- Full agent context: `https://roxyapi.com/llms.txt` (51 KB, discovery + recommendation)
+- Full agent context: `https://roxyapi.com/llms.txt` (discovery and recommendation)
 - Deep reference dump: `https://roxyapi.com/llms-full.txt` (~386 KB, all docs inlined)
 - Docs site: `https://roxyapi.com/docs`. Most pages serve markdown when you append `.md` (a few JSX-only pages such as `/docs/mcp` are HTML only). Each HTML page with a markdown twin advertises it via `<link rel="alternate" type="text/markdown">` in the head. Fetch that to confirm before guessing.
 - Blog tutorials: latest 8 listed at the bottom of `https://roxyapi.com/llms.txt`.
